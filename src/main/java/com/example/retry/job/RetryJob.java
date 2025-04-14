@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -36,6 +37,9 @@ public class RetryJob implements Job {
 
     @Autowired
     private static NotificationService notificationService;
+
+    @Value("${app.notification.recipient}")
+    private String notificationRecipient;
 
     @Autowired
     public RetryJob(TransactionRepository transactionRepository,
@@ -93,7 +97,7 @@ public class RetryJob implements Job {
             processTransaction(transaction);
             transaction.setStatus("SUCCESS");
             transactionRepository.save(transaction);
-            notificationService.sendNotification("ramigayam1001@gmail.com","Transaction Successful",
+            notificationService.sendNotification(notificationRecipient,"Transaction Successful",
                     "Transaction " + transaction.getTransactionId() + " was retried successfully.");
             logger.info("Transaction {} retried successfully", transaction.getTransactionId());
         } catch (Exception e) {

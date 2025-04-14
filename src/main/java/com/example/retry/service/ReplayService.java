@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -24,6 +25,9 @@ public class ReplayService {
     private Scheduler scheduler;
     @Autowired
     private NotificationService notificationService;
+
+    @Value("${app.notification.recipient}")
+    private String notificationRecipient;
 
     public void replayTransaction(Long transactionId, boolean immediate) throws SchedulerException {
         Transaction transaction = transactionRepository.findById(transactionId)
@@ -51,7 +55,7 @@ public class ReplayService {
             transaction.setRetryCount(0);
             transaction.setLastError(null);
             transactionRepository.save(transaction);
-            notificationService.sendNotification("ramigayam1001@gmail.com","Transaction Successful",
+            notificationService.sendNotification(notificationRecipient,"Transaction Successful",
                     "Transaction " + transaction.getTransactionId() + " Replayed successfully.");
             logger.info("Transaction {} replayed successfully", transaction.getTransactionId());
         } catch (Exception e) {
