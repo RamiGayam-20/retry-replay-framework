@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Retry & Replay Dashboard</title>
+</head>
+<body>
+<h1>Transaction Dashboard</h1>
+<div th:if="${error}" th:text="${error}" style="color: red;"></div>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>Transaction ID</th>
+        <th>Status</th>
+        <th>Retry Count</th>
+        <th>Last Error</th>
+        <th>Actions</th>
+    </tr>
+    <tr th:each="transaction : ${transactions}">
+        <td th:text="${transaction.id}"></td>
+        <td th:text="${transaction.transactionId}"></td>
+        <td th:text="${transaction.status}"></td>
+        <td th:text="${transaction.retryCount}"></td>
+        <td th:text="${transaction.lastError}"></td>
+        <td>
+            <div sec:authorize="hasRole('ADMIN')">
+            <form th:action="@{/transactions/retry/{id}(id=${transaction.id})}" method="post"
+                  th:if="${transaction.status != 'SUCCESS'}">
+                <select name="strategy">
+                    <option value="FIXED">Fixed Interval</option>
+                    <option value="EXPONENTIAL">Exponential Backoff</option>
+                    <option value="CIRCUIT_BREAKER">Circuit Breaker</option>
+                    <option value="JITTER">Jitter</option>
+                </select>
+                <button type="submit">Retry</button>
+            </form>
+            <form th:action="@{/transactions/replay/{id}(id=${transaction.id})}" method="post"
+                  th:if="${transaction.status == 'FAILED'}">
+                <input type="hidden" name="immediate" value="true"/>
+                <button type="submit">Replay Now</button>
+            </form>
+            </div>
+            <div sec:authorize="!hasRole('ADMIN')">
+                No actions available
+            </div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
